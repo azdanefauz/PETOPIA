@@ -18,6 +18,7 @@ static const char *PetLabel(PetType t) {
     if (t == PET_CAT) return "Kucing";
     if (t == PET_DOG) return "Anjing";
     if (t == PET_RABBIT) return "Kelinci";
+    if (t == PET_NANDA) return "NANDA";
     return "";
 }
 
@@ -25,6 +26,7 @@ static Color PetColor(PetType t) {
     if (t == PET_CAT) return ORANGE;
     if (t == PET_DOG) return BROWN;
     if (t == PET_RABBIT) return PINK;
+    if (t == PET_NANDA) return BLUE;
     return GRAY;
 }
 
@@ -44,64 +46,4 @@ int main(void) {
             DrawText("Rawat hewan peliharaan virtualmu!", 220, 270, 24, DARKGRAY);
             if (Button((Rectangle){ 325, 350, 150, 50 }, "START")) screen = SCREEN_SELECT;
         }
-        else if (screen == SCREEN_SELECT) {
-            DrawText("Pilih Hewan Peliharaanmu", 220, 60, 32, DARKGRAY);
-            PetType types[3] = { PET_CAT, PET_DOG, PET_RABBIT };
-            for (int i = 0; i < 3; i++) {
-                Rectangle box = { 100.0f + i * 220, 180, 180, 220 };
-                DrawRectangleRec(box, PetColor(types[i]));
-                if (pet.type == types[i]) DrawRectangleLinesEx(box, 6, DARKBLUE);
-                DrawText(PetLabel(types[i]), (int)box.x + 45, (int)box.y + 235, 24, BLACK);
-                if (CheckCollisionPointRec(GetMousePosition(), box) &&
-                    IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) pet.type = types[i];
-            }
-            if (pet.type != PET_NONE &&
-                Button((Rectangle){ 325, 510, 150, 50 }, "SELECT")) screen = SCREEN_NAME;
-        }
-        else if (screen == SCREEN_NAME) {
-            DrawText("Beri Nama Petmu", 280, 60, 32, DARKGRAY);
-            DrawRectangle(325, 120, 150, 180, PetColor(pet.type));
-
-            int key = GetCharPressed();
-            while (key > 0) {
-                int len = (int)strlen(pet.name);
-                if (key >= 32 && key <= 125 && len < MAX_NAME) {
-                    pet.name[len] = (char)key;
-                    pet.name[len + 1] = '\0';
-                }
-                key = GetCharPressed();
-            }
-            if (IsKeyPressed(KEY_BACKSPACE)) {
-                int len = (int)strlen(pet.name);
-                if (len > 0) pet.name[len - 1] = '\0';
-            }
-
-            DrawRectangle(250, 340, 300, 50, WHITE);
-            DrawRectangleLines(250, 340, 300, 50, DARKGRAY);
-            DrawText(pet.name, 260, 352, 26, BLACK);
-            if (strlen(pet.name) == 0) DrawText("Ketik nama...", 260, 355, 20, LIGHTGRAY);
-
-            if (strlen(pet.name) > 0 &&
-                Button((Rectangle){ 325, 430, 150, 50 }, "CONFIRM")) screen = SCREEN_GAME;
-        }
-        else if (screen == SCREEN_GAME) {
-            ClearBackground((Color){ 255, 240, 220, 255 });
-            DrawText(pet.name, 30, 20, 36, DARKBLUE);
-            DrawText(PetLabel(pet.type), 30, 62, 20, DARKGRAY);
-            DrawRectangle(325, 200, 150, 180, PetColor(pet.type));
-
-            DrawText(TextFormat("Lapar: %d", pet.hunger), 30, 120, 20, BLACK);
-            DrawText(TextFormat("Senang: %d", pet.happiness), 30, 150, 20, BLACK);
-            DrawText(TextFormat("Energi: %d", pet.energy), 30, 180, 20, BLACK);
-
-            Button((Rectangle){ 200, 500, 120, 50 }, "FEED");
-            Button((Rectangle){ 340, 500, 120, 50 }, "PLAY");
-            Button((Rectangle){ 480, 500, 120, 50 }, "REST");
-        }
-
-        EndDrawing();
-    }
-
-    CloseWindow();
-    return 0;
-}
+        else if (screen ==
