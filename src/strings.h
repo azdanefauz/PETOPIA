@@ -54,7 +54,7 @@
 #define TXT_NAV_KITCHEN         "KE DAPUR (FEED)"                   // [EDITABLE]: Navigation to kitchen
 #define TXT_NAV_BACKYARD        "KE HALAMAN (PLAY)"                 // [EDITABLE]: Navigation to backyard
 #define TXT_NAV_BEDROOM         "KE KAMAR TIDUR (REST)"             // [EDITABLE]: Navigation to bedroom
-#define TXT_ACTION_BATH         "MANDIKAN PET (CLEAN)"              // [EDITABLE]: Bath button
+#define TXT_ACTION_BATH         "KE KAMAR MANDI (CLEAN)"            // [EDITABLE]: Bath button
 
 // ----------------------------------------------------------------------------
 // [EDITABLE]: Screen 5 - Kitchen (Feeding) Text
@@ -89,6 +89,15 @@
 #define TXT_BTN_BACK            "< KEMBALI"                         // [EDITABLE]: Back button label
 #define TXT_MSG_WELCOME         "Selamat datang di Petopia!"        // [EDITABLE]: Initial message
 #define TXT_MSG_CLEANED         "dimandikan sampai bersih!"         // [EDITABLE]: Bath feedback
+#define TXT_MSG_SHOWERED        "disiram air hangat, segar!"        // [EDITABLE]: Shower feedback
+#define TXT_MSG_BRUSHED         "disikat bulunya, rapi!"            // [EDITABLE]: Brush feedback
+
+// Bathroom Screen
+#define TXT_BATHROOM_TITLE      "Kamar Mandi"                      // [EDITABLE]: Bathroom title
+#define TXT_BATHROOM_SUBTITLE   "Bersihkan pet kesayanganmu!"      // [EDITABLE]: Bathroom subtitle
+#define TXT_BATH_SHOWER         "Mandikan (Shower)"                 // [EDITABLE]: Shower option
+#define TXT_BATH_BRUSH          "Sikat Bulu (Brush)"                // [EDITABLE]: Brush option
+#define TXT_BATH_FULL           "Mandi Lengkap (Full Bath)"         // [EDITABLE]: Full bath option
 #define TXT_MSG_SNACK           "menikmati camilan!"                // [EDITABLE]: Snack feedback
 #define TXT_MSG_MEAL            "makan sampai kenyang!"             // [EDITABLE]: Meal feedback
 #define TXT_MSG_DRINK           "minum air segar!"                  // [EDITABLE]: Drink feedback

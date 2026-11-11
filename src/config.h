@@ -45,6 +45,7 @@
 #define PATH_BG_KITCHEN         "assets/images/backgrounds/kitchen.png"
 #define PATH_BG_BACKYARD        "assets/images/backgrounds/backyard.png"
 #define PATH_BG_BEDROOM         "assets/images/backgrounds/bedroom.png"
+#define PATH_BG_BATHROOM        "assets/images/backgrounds/bathroom.png"
 
 // ----------------------------------------------------------------------------
 // [EDITABLE]: Animation Settings for Future Spritesheets
