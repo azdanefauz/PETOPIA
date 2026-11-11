@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 #include "raylib.h"
 #include "pet.h"
 #include "config.h"   // [EDITABLE]: Paths, fonts, animation & constants
@@ -52,6 +53,27 @@ typedef struct {
 // ----------------------------------------------------------------------------
 // HELPER FUNCTIONS
 // ----------------------------------------------------------------------------
+
+static Font g_gameFont = { 0 };
+static bool g_hasCustomFont = false;
+
+static void AppDrawText(const char *text, int posX, int posY, int fontSize, Color color) {
+    if (g_hasCustomFont && g_gameFont.texture.id > 0) {
+        DrawTextEx(g_gameFont, text, (Vector2){ (float)posX, (float)posY }, (float)fontSize, 1.0f, color);
+    } else {
+        (DrawText)(text, posX, posY, fontSize, color);
+    }
+}
+
+static int AppMeasureText(const char *text, int fontSize) {
+    if (g_hasCustomFont && g_gameFont.texture.id > 0) {
+        return (int)MeasureTextEx(g_gameFont, text, (float)fontSize, 1.0f).x;
+    }
+    return (MeasureText)(text, fontSize);
+}
+
+#define DrawText AppDrawText
+#define MeasureText AppMeasureText
 
 static int ClampStat(int value, int minVal, int maxVal) {
     if (value < minVal) return minVal;
@@ -116,9 +138,14 @@ static int PetIndex(PetType t) {
  */
 static void DrawAssetOrBox(Texture2D tex, Rectangle r, Color placeholderTint) {
     if (tex.id > 0) {
+        float scale = fminf(r.width / (float)tex.width, r.height / (float)tex.height);
+        float destW = (float)tex.width * scale;
+        float destH = (float)tex.height * scale;
+        float destX = r.x + (r.width - destW) / 2.0f;
+        float destY = r.y + (r.height - destH) / 2.0f;
+        Rectangle dest = { destX, destY, destW, destH };
         Rectangle src = { 0.0f, 0.0f, (float)tex.width, (float)tex.height };
-        DrawTexturePro(tex, src, r, (Vector2){ 0, 0 }, 0.0f, WHITE);
-        DrawRectangleLinesEx(r, 2, DARKGRAY);
+        DrawTexturePro(tex, src, dest, (Vector2){ 0, 0 }, 0.0f, WHITE);
     } else {
         DrawRectangleRec(r, (Color){ placeholderTint.r, placeholderTint.g, placeholderTint.b, 45 });
         DrawRectangleLinesEx(r, 2, placeholderTint);
@@ -190,8 +217,11 @@ int main(void) {
     GameAssets assets = { 0 };
 
     if (FileExists(PATH_FONT)) {
-        assets.font = LoadFont(PATH_FONT);
+        assets.font = LoadFontEx(PATH_FONT, 72, NULL, 0);
+        SetTextureFilter(assets.font.texture, TEXTURE_FILTER_BILINEAR);
         assets.hasCustomFont = true;
+        g_gameFont = assets.font;
+        g_hasCustomFont = true;
     }
 
     assets.logo            = LoadTextureWithFallback(PATH_LOGO, FileExists("petopia.png") ? "petopia.png" : "assets/logo.png");
@@ -259,7 +289,7 @@ int main(void) {
             int subW = MeasureText(TXT_WELCOME_SUBTITLE, 22);
             DrawText(TXT_WELCOME_SUBTITLE, (SCREEN_WIDTH - subW) / 2, 120, 22, DARKGRAY);
 
-            Rectangle logoBox = { 250, 175, 300, 180 };
+            Rectangle logoBox = { 120, 160, 560, 180 };
             DrawAssetOrBox(assets.logo, logoBox, DARKBLUE);
 
             if (Button((Rectangle){ 325, 395, 150, 50 }, TXT_BTN_START)) {
@@ -324,14 +354,14 @@ int main(void) {
             int nameTitleW = MeasureText(TXT_NAME_TITLE, 30);
             DrawText(TXT_NAME_TITLE, (SCREEN_WIDTH - nameTitleW) / 2, 35, 30, DARKBLUE);
 
-            Rectangle illustRec = { 280, 85, 240, 180 };
+            Rectangle illustRec = { 290, 70, 220, 210 };
             int pIdx = PetIndex(pet.type);
             Texture2D pTex = (pIdx >= 0) ? assets.petAvatars[pIdx] : (Texture2D){ 0 };
             if (assets.petIllustration.id > 0) pTex = assets.petIllustration;
 
             DrawAssetOrBox(pTex, illustRec, PetColor(pet.type));
             if (pTex.id == 0) {
-                DrawPetAvatarAnimated((Rectangle){ 330, 115, 140, 120 }, pet.type, (Texture2D){ 0 }, animFrame);
+                DrawPetAvatarAnimated((Rectangle){ 330, 105, 140, 140 }, pet.type, (Texture2D){ 0 }, animFrame);
             }
 
             int key = GetCharPressed();
