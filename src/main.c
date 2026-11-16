@@ -44,6 +44,7 @@ typedef struct {
     bool hasCustomFont;
     Texture2D logo;
     Texture2D petAvatars[4];
+    Texture2D petHappyAvatars[4];
     Texture2D petIllustration;
     Texture2D bgLivingRoom;
     Texture2D bgKitchen;
@@ -81,6 +82,22 @@ static int ClampStat(int value, int minVal, int maxVal) {
     if (value < minVal) return minVal;
     if (value > maxVal) return maxVal;
     return value;
+}
+
+static int PetOverallStat(const Pet *pet) {
+    return (pet->hunger + pet->happiness + pet->energy + pet->cleanliness + pet->health) / 5;
+}
+
+static const char *PetMood(int overallStat) {
+    if (overallStat >= 67) return TXT_MOOD_HAPPY;
+    if (overallStat >= 34) return TXT_MOOD_NEUTRAL;
+    return TXT_MOOD_SAD;
+}
+
+static Color PetMoodColor(int overallStat) {
+    if (overallStat >= 67) return GREEN;
+    if (overallStat >= 34) return YELLOW;
+    return RED;
 }
 
 // Check primary path or fallback path
@@ -249,6 +266,9 @@ int main(void) {
     assets.petAvatars[1]   = LoadTextureWithFallback(PATH_PET_DOG, FileExists("dog selection.png") ? "dog selection.png" : "assets/dog.png");
     assets.petAvatars[2]   = LoadTextureWithFallback(PATH_PET_RABBIT, FileExists("rabbit selection.png") ? "rabbit selection.png" : "assets/rabbit.png");
     assets.petAvatars[3]   = LoadTextureWithFallback(PATH_PET_NANDA, "assets/nanda.png");
+    assets.petHappyAvatars[0] = LoadTextureWithFallback(PATH_PET_CAT_HAPPY, NULL);
+    assets.petHappyAvatars[1] = LoadTextureWithFallback(PATH_PET_DOG_HAPPY, NULL);
+    assets.petHappyAvatars[2] = LoadTextureWithFallback(PATH_PET_RABBIT_HAPPY, NULL);
     assets.petIllustration = LoadTextureWithFallback(PATH_PET_ILLUST, "assets/pet_illustration.png");
     assets.bgLivingRoom    = LoadTextureWithFallback(PATH_BG_LIVINGROOM, "assets/bg_livingroom.png");
     assets.bgKitchen       = LoadTextureWithFallback(PATH_BG_KITCHEN, "assets/bg_kitchen.png");
@@ -266,6 +286,7 @@ int main(void) {
     // Animation frame tracking
     int animFrame = 0;
     double lastAnimTime = GetTime();
+    double happyExpressionStart = GetTime();
 
     // ------------------------------------------------------------------------
     // MAIN LOOP
@@ -356,10 +377,17 @@ int main(void) {
                 Color btnBg = (pet.type == types[i]) ? SKYBLUE : LIGHTGRAY;
                 if (ButtonEx((Rectangle){ card.x + 25, card.y + 200, 110, 42 }, btnLabel, btnBg, SKYBLUE, 16)) {
                     pet.type = types[i];
+                    if (pet.type == PET_NANDA) {
+                        snprintf(pet.name, sizeof(pet.name), "%s", TXT_PET_NANDA);
+                        snprintf(messageLog, sizeof(messageLog), "%s", TXT_MSG_NANDA);
+                        messageTime = now;
+                        lastDecayTime = now;
+                        currentScreen = SCREEN_MAIN_ROOM;
+                    }
                 }
             }
 
-            if (pet.type != PET_NONE) {
+            if (currentScreen == SCREEN_SELECT && pet.type != PET_NONE) {
                 if (ButtonEx((Rectangle){ 325, 485, 150, 48 }, TXT_BTN_CONTINUE, GREEN, LIME, 20)) {
                     currentScreen = SCREEN_NAME;
                 }
@@ -430,6 +458,12 @@ int main(void) {
             // Pet placed naturally on the floor near drawers / aquarium (not floating)
             int pIdx = PetIndex(pet.type);
             Texture2D avTex = (pIdx >= 0) ? assets.petAvatars[pIdx] : (Texture2D){ 0 };
+            int overallStat = PetOverallStat(&pet);
+            double happyCycleTime = fmod(now - happyExpressionStart, PET_HAPPY_INTERVAL);
+            if (overallStat >= 67 && happyCycleTime < PET_HAPPY_DURATION &&
+                pIdx >= 0 && assets.petHappyAvatars[pIdx].id > 0) {
+                avTex = assets.petHappyAvatars[pIdx];
+            }
             DrawPetAvatarAnimated((Rectangle){ 360, 215, 115, 115 }, pet.type, avTex, animFrame);
             
             int nameW = MeasureText(pet.name, 22);
@@ -442,6 +476,9 @@ int main(void) {
             DrawStatBar(statX, statY + 52, 140, 15, TXT_STAT_ENERGY, pet.energy, GOLD);
             DrawStatBar(statX, statY + 78, 140, 15, TXT_STAT_CLEANLINESS, pet.cleanliness, SKYBLUE);
             DrawStatBar(statX, statY + 104, 140, 15, TXT_STAT_HEALTH, pet.health, RED);
+            DrawText(TextFormat("%s: %d/100", TXT_OVERALL_STATS, overallStat),
+                     statX, statY + 136, 16, DARKBLUE);
+            DrawText(PetMood(overallStat), statX, statY + 156, 16, PetMoodColor(overallStat));
 
             int btnX = 450;
             if (ButtonEx((Rectangle){ btnX, 390, 300, 38 }, TXT_NAV_KITCHEN, ORANGE, GOLD, 16)) {
@@ -653,6 +690,7 @@ int main(void) {
     if (assets.logo.id > 0)             UnloadTexture(assets.logo);
     for (int i = 0; i < 4; i++) {
         if (assets.petAvatars[i].id > 0) UnloadTexture(assets.petAvatars[i]);
+        if (assets.petHappyAvatars[i].id > 0) UnloadTexture(assets.petHappyAvatars[i]);
     }
     if (assets.petIllustration.id > 0) UnloadTexture(assets.petIllustration);
     if (assets.bgLivingRoom.id > 0)    UnloadTexture(assets.bgLivingRoom);
