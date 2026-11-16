@@ -159,6 +159,19 @@ static void DrawRoomTitle(const char *title, int x, int y) {
     DrawText(title, x, y, 20, WHITE);
 }
 
+static void DrawMessagePopup(const char *msg, double now, double msgTime) {
+    if (now - msgTime < 3.0 && msg != NULL && msg[0] != '\0') {
+        int textW = MeasureText(msg, 16);
+        int popW = textW + 28;
+        if (popW < 240) popW = 240;
+        if (popW > 700) popW = 700;
+        Rectangle popRec = { 40, 325, (float)popW, 32 };
+        DrawRectangleRounded(popRec, 0.35f, 4, (Color){ 0, 0, 0, 195 });
+        DrawRectangleRoundedLines(popRec, 0.35f, 4, (Color){ 255, 255, 255, 90 });
+        DrawText(msg, 54, 332, 16, WHITE);
+    }
+}
+
 /**
  * ANIMATION-READY PET SPRITE RENDERER
  * ---------------------------------------------------------------------------
@@ -444,10 +457,7 @@ int main(void) {
                 currentScreen = SCREEN_BATHROOM;
             }
 
-            if (now - messageTime < 3.0) {
-                DrawRectangle(40, 330, 420, 30, (Color){ 0, 0, 0, 180 });
-                DrawText(messageLog, 50, 337, 16, WHITE);
-            }
+            DrawMessagePopup(messageLog, now, messageTime);
         }
 
         // ====================================================================
@@ -492,10 +502,7 @@ int main(void) {
                 messageTime = now;
             }
 
-            if (now - messageTime < 3.0) {
-                DrawRectangle(btnX, 536, 300, 28, (Color){ 0, 0, 0, 180 });
-                DrawText(messageLog, btnX + 10, 542, 14, WHITE);
-            }
+            DrawMessagePopup(messageLog, now, messageTime);
         }
 
         // ====================================================================
@@ -543,10 +550,7 @@ int main(void) {
                 messageTime = now;
             }
 
-            if (now - messageTime < 3.0) {
-                DrawRectangle(btnX, 536, 300, 28, (Color){ 0, 0, 0, 180 });
-                DrawText(messageLog, btnX + 10, 542, 14, WHITE);
-            }
+            DrawMessagePopup(messageLog, now, messageTime);
         }
 
         // ====================================================================
@@ -588,10 +592,7 @@ int main(void) {
                 messageTime = now;
             }
 
-            if (now - messageTime < 3.0) {
-                DrawRectangle(btnX, 520, 300, 28, (Color){ 0, 0, 0, 180 });
-                DrawText(messageLog, btnX + 10, 526, 14, WHITE);
-            }
+            DrawMessagePopup(messageLog, now, messageTime);
         }
 
         // ====================================================================
@@ -639,10 +640,7 @@ int main(void) {
                 messageTime = now;
             }
 
-            if (now - messageTime < 3.0) {
-                DrawRectangle(btnX, 536, 300, 28, (Color){ 0, 0, 0, 180 });
-                DrawText(messageLog, btnX + 10, 542, 14, WHITE);
-            }
+            DrawMessagePopup(messageLog, now, messageTime);
         }
 
         EndDrawing();
