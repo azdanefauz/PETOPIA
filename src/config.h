@@ -38,6 +38,9 @@
 #define PATH_PET_DOG            "assets/images/pets/dog.png"
 #define PATH_PET_RABBIT         "assets/images/pets/rabbit.png"
 #define PATH_PET_NANDA          "assets/images/pets/nanda.png"
+#define PATH_PET_CAT_HAPPY      "assets/images/pets/cat happy.png"
+#define PATH_PET_DOG_HAPPY      "assets/images/pets/dog happy.png"
+#define PATH_PET_RABBIT_HAPPY   "assets/images/pets/rabbit happy.png"
 #define PATH_PET_ILLUST         "assets/images/pets/pet_illustration.png"
 
 // Room Backgrounds
@@ -59,6 +62,8 @@
 // [EDITABLE]: Gameplay & Stat Decay Settings
 // ----------------------------------------------------------------------------
 #define STAT_DECAY_INTERVAL     4.0     // [EDITABLE]: Seconds between each stat decay tick
+#define PET_HAPPY_INTERVAL     10.0     // Seconds between happy expressions
+#define PET_HAPPY_DURATION      2.0     // Seconds the happy expression is shown
 #define MAX_NAME_LENGTH         12      // [EDITABLE]: Maximum characters in pet name
 
 #endif
