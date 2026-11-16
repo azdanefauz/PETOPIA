@@ -50,6 +50,10 @@
 #define TXT_STAT_ENERGY         "Energi"                            // [EDITABLE]: Energy stat label
 #define TXT_STAT_CLEANLINESS    "Kebersihan"                        // [EDITABLE]: Cleanliness stat label
 #define TXT_STAT_HEALTH         "Kesehatan"                         // [EDITABLE]: Health stat label
+#define TXT_OVERALL_STATS       "Kondisi keseluruhan"               // [EDITABLE]: Average of all pet stats
+#define TXT_MOOD_HAPPY          "Happy"                             // [EDITABLE]: Mood when overall stats are high
+#define TXT_MOOD_NEUTRAL        "Neutral"                           // [EDITABLE]: Mood when overall stats are moderate
+#define TXT_MOOD_SAD            "Sad"                               // [EDITABLE]: Mood when overall stats are low
 
 #define TXT_NAV_KITCHEN         "KE DAPUR (FEED)"                   // [EDITABLE]: Navigation to kitchen
 #define TXT_NAV_BACKYARD        "KE HALAMAN (PLAY)"                 // [EDITABLE]: Navigation to backyard
@@ -88,6 +92,7 @@
 // ----------------------------------------------------------------------------
 #define TXT_BTN_BACK            "< KEMBALI"                         // [EDITABLE]: Back button label
 #define TXT_MSG_WELCOME         "Selamat datang di Petopia!"        // [EDITABLE]: Initial message
+#define TXT_MSG_NANDA           "jangan bully org ya temen-temenn :)" // [EDITABLE]: Nanda's welcome message
 #define TXT_MSG_CLEANED         "dimandikan sampai bersih!"         // [EDITABLE]: Bath feedback
 #define TXT_MSG_SHOWERED        "disiram air hangat, segar!"        // [EDITABLE]: Shower feedback
 #define TXT_MSG_BRUSHED         "disikat bulunya, rapi!"            // [EDITABLE]: Brush feedback
