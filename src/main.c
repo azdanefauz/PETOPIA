@@ -140,20 +140,23 @@ static int PetIndex(PetType t) {
  */
 static void DrawAssetOrBox(Texture2D tex, Rectangle r, Color placeholderTint) {
     if (tex.id > 0) {
-        float scale = fminf(r.width / (float)tex.width, r.height / (float)tex.height);
-        float destW = (float)tex.width * scale;
-        float destH = (float)tex.height * scale;
-        float destX = r.x + (r.width - destW) / 2.0f;
-        float destY = r.y + (r.height - destH) / 2.0f;
-        Rectangle dest = { destX, destY, destW, destH };
         Rectangle src = { 0.0f, 0.0f, (float)tex.width, (float)tex.height };
-        DrawTexturePro(tex, src, dest, (Vector2){ 0, 0 }, 0.0f, WHITE);
+        DrawTexturePro(tex, src, r, (Vector2){ 0, 0 }, 0.0f, WHITE);
+        DrawRectangleLinesEx(r, 2, DARKGRAY);
     } else {
         DrawRectangleRec(r, (Color){ placeholderTint.r, placeholderTint.g, placeholderTint.b, 45 });
         DrawRectangleLinesEx(r, 2, placeholderTint);
         DrawLine((int)r.x, (int)r.y, (int)r.x + 12, (int)r.y + 12, placeholderTint);
         DrawLine((int)(r.x + r.width), (int)r.y, (int)(r.x + r.width - 12), (int)r.y + 12, placeholderTint);
     }
+}
+
+static void DrawRoomTitle(const char *title, int x, int y) {
+    int textW = MeasureText(title, 20);
+    Rectangle pill = { (float)x - 10, (float)y - 6, (float)textW + 20, 32 };
+    DrawRectangleRounded(pill, 0.4f, 4, (Color){ 0, 0, 0, 160 });
+    DrawRectangleRoundedLines(pill, 0.4f, 4, (Color){ 255, 255, 255, 80 });
+    DrawText(title, x, y, 20, WHITE);
 }
 
 /**
@@ -408,14 +411,16 @@ int main(void) {
                 DrawRectangleRec((Rectangle){ 20, 250, 760, 120 }, (Color){ 220, 200, 170, 160 });
             }
 
+            // Clean title HUD in top-left
+            DrawRoomTitle(TextFormat("%s si %s", pet.name, PetLabel(pet.type)), 40, 35);
+
+            // Pet placed naturally on the floor near drawers / aquarium (not floating)
             int pIdx = PetIndex(pet.type);
             Texture2D avTex = (pIdx >= 0) ? assets.petAvatars[pIdx] : (Texture2D){ 0 };
-            DrawPetAvatarAnimated((Rectangle){ 330, 160, 140, 140 }, pet.type, avTex, animFrame);
+            DrawPetAvatarAnimated((Rectangle){ 360, 215, 115, 115 }, pet.type, avTex, animFrame);
             
-            int nameW = MeasureText(pet.name, 24);
-            DrawText(pet.name, (SCREEN_WIDTH - nameW) / 2, 120, 24, DARKBLUE);
-
-            DrawText(TextFormat("%s si %s", pet.name, PetLabel(pet.type)), 40, 35, 20, DARKBLUE);
+            int nameW = MeasureText(pet.name, 22);
+            DrawText(pet.name, 360 + (115 - nameW) / 2, 185, 22, DARKBLUE);
 
             int statX = 40;
             int statY = 390;
@@ -449,47 +454,47 @@ int main(void) {
         // SCREEN 5: KITCHEN SCREEN (Feed)
         // ====================================================================
         else if (currentScreen == SCREEN_KITCHEN) {
-            // Viewport: 760x350 so buttons live below without blocking visuals
             Rectangle bgRec = { 20, 20, 760, 350 };
             DrawAssetOrBox(assets.bgKitchen, bgRec, ORANGE);
 
-            DrawText(TXT_KITCHEN_TITLE, 40, 35, 22, DARKBLUE);
+            DrawRoomTitle(TXT_KITCHEN_TITLE, 40, 35);
 
-            // Pet placed beside food & water bowls (bowls are at x=330..420)
+            // Pet beside food & water bowls
             int pIdx = PetIndex(pet.type);
             Texture2D avTex = (pIdx >= 0) ? assets.petAvatars[pIdx] : (Texture2D){ 0 };
             DrawPetAvatarAnimated((Rectangle){ 190, 190, 130, 130 }, pet.type, avTex, animFrame);
 
-            // Controls & stats placed below the background canvas
+            // Left side: Stat bars & Back button (x = 40)
             int statX = 40;
-            DrawStatBar(statX, 390, 140, 15, TXT_STAT_HUNGER, pet.hunger, ORANGE);
-            DrawStatBar(statX, 420, 140, 15, TXT_STAT_ENERGY, pet.energy, GOLD);
+            DrawStatBar(statX, 395, 140, 15, TXT_STAT_HUNGER, pet.hunger, ORANGE);
+            DrawStatBar(statX, 430, 140, 15, TXT_STAT_ENERGY, pet.energy, GOLD);
 
-            if (Button((Rectangle){ 40, 470, 180, 44 }, TXT_BTN_BACK)) {
+            if (Button((Rectangle){ statX, 480, 200, 46 }, TXT_BTN_BACK)) {
                 currentScreen = SCREEN_MAIN_ROOM;
             }
 
-            // Food action buttons in bottom panel
-            if (ButtonEx((Rectangle){ 260, 390, 240, 44 }, TXT_FOOD_SNACK, LIGHTGRAY, SKYBLUE, 16)) {
+            // Right side: Action buttons proportional at x = 450 (no overlap with stat bars!)
+            int btnX = 450;
+            if (ButtonEx((Rectangle){ btnX, 390, 300, 42 }, TXT_FOOD_SNACK, LIGHTGRAY, SKYBLUE, 16)) {
                 pet.hunger = ClampStat(pet.hunger + 10, 0, 100);
                 snprintf(messageLog, sizeof(messageLog), "%s %s", pet.name, TXT_MSG_SNACK);
                 messageTime = now;
             }
-            if (ButtonEx((Rectangle){ 515, 390, 240, 44 }, TXT_FOOD_MEAL, LIGHTGRAY, SKYBLUE, 16)) {
+            if (ButtonEx((Rectangle){ btnX, 438, 300, 42 }, TXT_FOOD_MEAL, LIGHTGRAY, SKYBLUE, 16)) {
                 pet.hunger = ClampStat(pet.hunger + 30, 0, 100);
                 pet.energy = ClampStat(pet.energy + 5, 0, 100);
                 snprintf(messageLog, sizeof(messageLog), "%s %s", pet.name, TXT_MSG_MEAL);
                 messageTime = now;
             }
-            if (ButtonEx((Rectangle){ 260, 445, 240, 44 }, TXT_FOOD_DRINK, LIGHTGRAY, SKYBLUE, 16)) {
+            if (ButtonEx((Rectangle){ btnX, 486, 300, 42 }, TXT_FOOD_DRINK, LIGHTGRAY, SKYBLUE, 16)) {
                 pet.energy = ClampStat(pet.energy + 15, 0, 100);
                 snprintf(messageLog, sizeof(messageLog), "%s %s", pet.name, TXT_MSG_DRINK);
                 messageTime = now;
             }
 
             if (now - messageTime < 3.0) {
-                DrawRectangle(260, 500, 495, 34, (Color){ 0, 0, 0, 180 });
-                DrawText(messageLog, 275, 508, 16, WHITE);
+                DrawRectangle(btnX, 536, 300, 28, (Color){ 0, 0, 0, 180 });
+                DrawText(messageLog, btnX + 10, 542, 14, WHITE);
             }
         }
 
@@ -500,37 +505,38 @@ int main(void) {
             Rectangle bgRec = { 20, 20, 760, 350 };
             DrawAssetOrBox(assets.bgBackyard, bgRec, GREEN);
 
-            DrawText(TXT_BACKYARD_TITLE, 40, 35, 22, DARKBLUE);
+            DrawRoomTitle(TXT_BACKYARD_TITLE, 40, 35);
 
-            // Pet placed in center lawn
             int pIdx = PetIndex(pet.type);
             Texture2D avTex = (pIdx >= 0) ? assets.petAvatars[pIdx] : (Texture2D){ 0 };
             DrawPetAvatarAnimated((Rectangle){ 315, 180, 130, 130 }, pet.type, avTex, animFrame);
 
-            // Controls & stats placed below background
+            // Left side: Stat bars & Back button
             int statX = 40;
-            DrawStatBar(statX, 390, 140, 15, TXT_STAT_HAPPINESS, pet.happiness, PINK);
-            DrawStatBar(statX, 420, 140, 15, TXT_STAT_ENERGY, pet.energy, GOLD);
+            DrawStatBar(statX, 395, 140, 15, TXT_STAT_HAPPINESS, pet.happiness, PINK);
+            DrawStatBar(statX, 430, 140, 15, TXT_STAT_ENERGY, pet.energy, GOLD);
 
-            if (Button((Rectangle){ 40, 470, 180, 44 }, TXT_BTN_BACK)) {
+            if (Button((Rectangle){ statX, 480, 200, 46 }, TXT_BTN_BACK)) {
                 currentScreen = SCREEN_MAIN_ROOM;
             }
 
-            if (ButtonEx((Rectangle){ 260, 390, 240, 44 }, TXT_PLAY_BALL, LIGHTGRAY, LIME, 16)) {
+            // Right side: Action buttons at x = 450
+            int btnX = 450;
+            if (ButtonEx((Rectangle){ btnX, 390, 300, 42 }, TXT_PLAY_BALL, LIGHTGRAY, LIME, 16)) {
                 pet.happiness = ClampStat(pet.happiness + 20, 0, 100);
                 pet.energy = ClampStat(pet.energy - 10, 0, 100);
                 pet.cleanliness = ClampStat(pet.cleanliness - 8, 0, 100);
                 snprintf(messageLog, sizeof(messageLog), "%s %s", pet.name, TXT_MSG_BALL);
                 messageTime = now;
             }
-            if (ButtonEx((Rectangle){ 515, 390, 240, 44 }, TXT_PLAY_FRISBEE, LIGHTGRAY, LIME, 16)) {
+            if (ButtonEx((Rectangle){ btnX, 438, 300, 42 }, TXT_PLAY_FRISBEE, LIGHTGRAY, LIME, 16)) {
                 pet.happiness = ClampStat(pet.happiness + 35, 0, 100);
                 pet.energy = ClampStat(pet.energy - 20, 0, 100);
                 pet.cleanliness = ClampStat(pet.cleanliness - 12, 0, 100);
                 snprintf(messageLog, sizeof(messageLog), "%s %s", pet.name, TXT_MSG_FRISBEE);
                 messageTime = now;
             }
-            if (ButtonEx((Rectangle){ 260, 445, 240, 44 }, TXT_PLAY_WALK, LIGHTGRAY, LIME, 16)) {
+            if (ButtonEx((Rectangle){ btnX, 486, 300, 42 }, TXT_PLAY_WALK, LIGHTGRAY, LIME, 16)) {
                 pet.happiness = ClampStat(pet.happiness + 15, 0, 100);
                 pet.energy = ClampStat(pet.energy - 5, 0, 100);
                 snprintf(messageLog, sizeof(messageLog), "%s %s", pet.name, TXT_MSG_WALK);
@@ -538,8 +544,8 @@ int main(void) {
             }
 
             if (now - messageTime < 3.0) {
-                DrawRectangle(260, 500, 495, 34, (Color){ 0, 0, 0, 180 });
-                DrawText(messageLog, 275, 508, 16, WHITE);
+                DrawRectangle(btnX, 536, 300, 28, (Color){ 0, 0, 0, 180 });
+                DrawText(messageLog, btnX + 10, 542, 14, WHITE);
             }
         }
 
@@ -550,30 +556,31 @@ int main(void) {
             Rectangle bgRec = { 20, 20, 760, 350 };
             DrawAssetOrBox(assets.bgBedroom, bgRec, DARKBLUE);
 
-            DrawText(TXT_BEDROOM_TITLE, 40, 35, 22, WHITE);
+            DrawRoomTitle(TXT_BEDROOM_TITLE, 40, 35);
 
-            // Pet placed right on top of the bed in center
             int pIdx = PetIndex(pet.type);
             Texture2D avTex = (pIdx >= 0) ? assets.petAvatars[pIdx] : (Texture2D){ 0 };
             DrawPetAvatarAnimated((Rectangle){ 340, 155, 120, 120 }, pet.type, avTex, animFrame);
             DrawText(TXT_SLEEPING_ZZZ, 450, 125, 26, YELLOW);
 
-            // Controls & stats placed below background
+            // Left side: Stat bars & Back button
             int statX = 40;
-            DrawStatBar(statX, 390, 140, 15, TXT_STAT_ENERGY, pet.energy, GOLD);
-            DrawStatBar(statX, 420, 140, 15, TXT_STAT_HEALTH, pet.health, RED);
+            DrawStatBar(statX, 395, 140, 15, TXT_STAT_ENERGY, pet.energy, GOLD);
+            DrawStatBar(statX, 430, 140, 15, TXT_STAT_HEALTH, pet.health, RED);
 
-            if (Button((Rectangle){ 40, 470, 180, 44 }, TXT_BTN_BACK)) {
+            if (Button((Rectangle){ statX, 480, 200, 46 }, TXT_BTN_BACK)) {
                 currentScreen = SCREEN_MAIN_ROOM;
             }
 
-            if (ButtonEx((Rectangle){ 260, 390, 240, 44 }, TXT_REST_NAP, LIGHTGRAY, SKYBLUE, 16)) {
+            // Right side: Action buttons at x = 450
+            int btnX = 450;
+            if (ButtonEx((Rectangle){ btnX, 400, 300, 46 }, TXT_REST_NAP, LIGHTGRAY, SKYBLUE, 16)) {
                 pet.energy = ClampStat(pet.energy + 25, 0, 100);
                 pet.health = ClampStat(pet.health + 5, 0, 100);
                 snprintf(messageLog, sizeof(messageLog), "%s %s", pet.name, TXT_MSG_NAP);
                 messageTime = now;
             }
-            if (ButtonEx((Rectangle){ 515, 390, 240, 44 }, TXT_REST_SLEEP, LIGHTGRAY, SKYBLUE, 16)) {
+            if (ButtonEx((Rectangle){ btnX, 460, 300, 46 }, TXT_REST_SLEEP, LIGHTGRAY, SKYBLUE, 16)) {
                 pet.energy = ClampStat(pet.energy + 60, 0, 100);
                 pet.health = ClampStat(pet.health + 15, 0, 100);
                 pet.hunger = ClampStat(pet.hunger - 10, 0, 100);
@@ -582,8 +589,8 @@ int main(void) {
             }
 
             if (now - messageTime < 3.0) {
-                DrawRectangle(260, 450, 495, 34, (Color){ 0, 0, 0, 180 });
-                DrawText(messageLog, 275, 458, 16, WHITE);
+                DrawRectangle(btnX, 520, 300, 28, (Color){ 0, 0, 0, 180 });
+                DrawText(messageLog, btnX + 10, 526, 14, WHITE);
             }
         }
 
@@ -594,35 +601,36 @@ int main(void) {
             Rectangle bgRec = { 20, 20, 760, 350 };
             DrawAssetOrBox(assets.bgBathroom, bgRec, SKYBLUE);
 
-            DrawText(TXT_BATHROOM_TITLE, 40, 35, 22, DARKBLUE);
+            DrawRoomTitle(TXT_BATHROOM_TITLE, 40, 35);
 
-            // Pet placed inside the shower stall in center (not next to the trash can!)
             int pIdx = PetIndex(pet.type);
             Texture2D avTex = (pIdx >= 0) ? assets.petAvatars[pIdx] : (Texture2D){ 0 };
             DrawPetAvatarAnimated((Rectangle){ 280, 165, 120, 120 }, pet.type, avTex, animFrame);
 
-            // Controls & stats placed below background
+            // Left side: Stat bars & Back button
             int statX = 40;
-            DrawStatBar(statX, 390, 140, 15, TXT_STAT_CLEANLINESS, pet.cleanliness, SKYBLUE);
-            DrawStatBar(statX, 420, 140, 15, TXT_STAT_HEALTH, pet.health, RED);
+            DrawStatBar(statX, 395, 140, 15, TXT_STAT_CLEANLINESS, pet.cleanliness, SKYBLUE);
+            DrawStatBar(statX, 430, 140, 15, TXT_STAT_HEALTH, pet.health, RED);
 
-            if (Button((Rectangle){ 40, 470, 180, 44 }, TXT_BTN_BACK)) {
+            if (Button((Rectangle){ statX, 480, 200, 46 }, TXT_BTN_BACK)) {
                 currentScreen = SCREEN_MAIN_ROOM;
             }
 
-            if (ButtonEx((Rectangle){ 260, 390, 240, 44 }, TXT_BATH_SHOWER, LIGHTGRAY, SKYBLUE, 16)) {
+            // Right side: Action buttons at x = 450
+            int btnX = 450;
+            if (ButtonEx((Rectangle){ btnX, 390, 300, 42 }, TXT_BATH_SHOWER, LIGHTGRAY, SKYBLUE, 16)) {
                 pet.cleanliness = ClampStat(pet.cleanliness + 25, 0, 100);
                 pet.happiness = ClampStat(pet.happiness + 5, 0, 100);
                 snprintf(messageLog, sizeof(messageLog), "%s %s", pet.name, TXT_MSG_SHOWERED);
                 messageTime = now;
             }
-            if (ButtonEx((Rectangle){ 515, 390, 240, 44 }, TXT_BATH_BRUSH, LIGHTGRAY, SKYBLUE, 16)) {
+            if (ButtonEx((Rectangle){ btnX, 438, 300, 42 }, TXT_BATH_BRUSH, LIGHTGRAY, SKYBLUE, 16)) {
                 pet.cleanliness = ClampStat(pet.cleanliness + 15, 0, 100);
                 pet.happiness = ClampStat(pet.happiness + 10, 0, 100);
                 snprintf(messageLog, sizeof(messageLog), "%s %s", pet.name, TXT_MSG_BRUSHED);
                 messageTime = now;
             }
-            if (ButtonEx((Rectangle){ 260, 445, 240, 44 }, TXT_BATH_FULL, LIGHTGRAY, SKYBLUE, 16)) {
+            if (ButtonEx((Rectangle){ btnX, 486, 300, 42 }, TXT_BATH_FULL, LIGHTGRAY, SKYBLUE, 16)) {
                 pet.cleanliness = ClampStat(pet.cleanliness + 50, 0, 100);
                 pet.happiness = ClampStat(pet.happiness + 15, 0, 100);
                 pet.health = ClampStat(pet.health + 10, 0, 100);
@@ -632,8 +640,8 @@ int main(void) {
             }
 
             if (now - messageTime < 3.0) {
-                DrawRectangle(260, 500, 495, 34, (Color){ 0, 0, 0, 180 });
-                DrawText(messageLog, 275, 508, 16, WHITE);
+                DrawRectangle(btnX, 536, 300, 28, (Color){ 0, 0, 0, 180 });
+                DrawText(messageLog, btnX + 10, 542, 14, WHITE);
             }
         }
 
