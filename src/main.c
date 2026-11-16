@@ -236,8 +236,8 @@ int main(void) {
     assets.petIllustration = LoadTextureWithFallback(PATH_PET_ILLUST, "assets/pet_illustration.png");
     assets.bgLivingRoom    = LoadTextureWithFallback(PATH_BG_LIVINGROOM, "assets/bg_livingroom.png");
     assets.bgKitchen       = LoadTextureWithFallback(PATH_BG_KITCHEN, "assets/bg_kitchen.png");
-    assets.bgBackyard      = LoadTextureWithFallback(PATH_BG_BACKYARD, "assets/bg_backyard.png");
-    assets.bgBedroom       = LoadTextureWithFallback(PATH_BG_BEDROOM, "assets/bg_bedroom.png");
+    assets.bgBackyard      = LoadTextureWithFallback(PATH_BG_BACKYARD, FileExists("assets/images/backgrounds/backyard") ? "assets/images/backgrounds/backyard" : "assets/bg_backyard.png");
+    assets.bgBedroom       = LoadTextureWithFallback(PATH_BG_BEDROOM, FileExists("assets/images/backgrounds/bedroom") ? "assets/images/backgrounds/bedroom" : "assets/bg_bedroom.png");
     assets.bgBathroom      = LoadTextureWithFallback(PATH_BG_BATHROOM, "assets/bg_bathroom.png");
 
     Screen currentScreen = SCREEN_WELCOME;
