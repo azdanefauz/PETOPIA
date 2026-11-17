@@ -43,8 +43,10 @@ typedef struct {
     Font font;
     bool hasCustomFont;
     Texture2D logo;
-    Texture2D petAvatars[4];
-    Texture2D petHappyAvatars[4];
+    Texture2D petAvatars[3];
+    Texture2D petHappyAvatars[3];
+    Texture2D petSadAvatars[3];
+    Texture2D petSleepAvatars[3];
     Texture2D petIllustration;
     Texture2D bgLivingRoom;
     Texture2D bgKitchen;
@@ -126,7 +128,6 @@ static const char *PetLabel(PetType t) {
         case PET_CAT:    return TXT_PET_CAT;
         case PET_DOG:    return TXT_PET_DOG;
         case PET_RABBIT: return TXT_PET_RABBIT;
-        case PET_NANDA:  return TXT_PET_NANDA;
         default:         return "";
     }
 }
@@ -136,7 +137,6 @@ static Color PetColor(PetType t) {
         case PET_CAT:    return ORANGE;
         case PET_DOG:    return BROWN;
         case PET_RABBIT: return PINK;
-        case PET_NANDA:  return BLUE;
         default:         return GRAY;
     }
 }
@@ -146,9 +146,51 @@ static int PetIndex(PetType t) {
         case PET_CAT:    return 0;
         case PET_DOG:    return 1;
         case PET_RABBIT: return 2;
-        case PET_NANDA:  return 3;
         default:         return -1;
     }
+}
+
+static Texture2D PetMoodTexture(const Pet *pet, const GameAssets *assets, int petIndex) {
+    if (petIndex < 0) return (Texture2D){ 0 };
+    if (PetOverallStat(pet) < 34 && assets->petSadAvatars[petIndex].id > 0) {
+        return assets->petSadAvatars[petIndex];
+    }
+    return assets->petAvatars[petIndex];
+}
+
+static Texture2D PetSleepTexture(const GameAssets *assets, int petIndex) {
+    if (petIndex >= 0 && assets->petSleepAvatars[petIndex].id > 0) {
+        return assets->petSleepAvatars[petIndex];
+    }
+    return petIndex >= 0 ? assets->petAvatars[petIndex] : (Texture2D){ 0 };
+}
+
+static void DrawPetConditionEffects(Rectangle r, const Pet *pet, double now) {
+    if (pet->cleanliness >= PET_DIRTY_THRESHOLD) return;
+
+    DrawCircleV((Vector2){ r.x + r.width * 0.30f, r.y + r.height * 0.34f }, 4, (Color){ 120, 75, 35, 185 });
+    DrawCircleV((Vector2){ r.x + r.width * 0.68f, r.y + r.height * 0.57f }, 3, (Color){ 120, 75, 35, 185 });
+    DrawCircleV((Vector2){ r.x + r.width * 0.45f, r.y + r.height * 0.73f }, 2, (Color){ 120, 75, 35, 185 });
+
+    for (int i = 0; i < 3; i++) {
+        float angle = (float)now * 3.0f + (float)i * 2.1f;
+        float cx = r.x + r.width * 0.5f + cosf(angle) * (r.width * 0.62f);
+        float cy = r.y + r.height * 0.5f + sinf(angle * 1.3f) * (r.height * 0.48f);
+        DrawEllipse((int)cx, (int)cy, 4, 2, DARKGRAY);
+        DrawCircle((int)cx - 3, (int)cy - 2, 2, (Color){ 225, 235, 245, 220 });
+        DrawCircle((int)cx + 3, (int)cy - 2, 2, (Color){ 225, 235, 245, 220 });
+    }
+}
+
+static void DrawBathFoam(Rectangle petRec, double elapsed) {
+    float bob = sinf((float)elapsed * 5.0f) * 2.0f;
+    Color foam = (Color){ 245, 252, 255, 220 };
+    DrawCircleV((Vector2){ petRec.x + 12, petRec.y + 42 + bob }, 17, foam);
+    DrawCircleV((Vector2){ petRec.x + 27, petRec.y + 25 + bob }, 19, foam);
+    DrawCircleV((Vector2){ petRec.x + petRec.width - 16, petRec.y + 35 - bob }, 18, foam);
+    DrawCircleV((Vector2){ petRec.x + petRec.width - 4, petRec.y + 59 - bob }, 14, foam);
+    DrawCircleV((Vector2){ petRec.x + 24, petRec.y + petRec.height - 18 - bob }, 15, foam);
+    DrawCircleV((Vector2){ petRec.x + petRec.width - 22, petRec.y + petRec.height - 16 + bob }, 17, foam);
 }
 
 /**
@@ -265,10 +307,15 @@ int main(void) {
     assets.petAvatars[0]   = LoadTextureWithFallback(PATH_PET_CAT, FileExists("cat selection.png") ? "cat selection.png" : "assets/cat.png");
     assets.petAvatars[1]   = LoadTextureWithFallback(PATH_PET_DOG, FileExists("dog selection.png") ? "dog selection.png" : "assets/dog.png");
     assets.petAvatars[2]   = LoadTextureWithFallback(PATH_PET_RABBIT, FileExists("rabbit selection.png") ? "rabbit selection.png" : "assets/rabbit.png");
-    assets.petAvatars[3]   = LoadTextureWithFallback(PATH_PET_NANDA, "assets/nanda.png");
     assets.petHappyAvatars[0] = LoadTextureWithFallback(PATH_PET_CAT_HAPPY, NULL);
     assets.petHappyAvatars[1] = LoadTextureWithFallback(PATH_PET_DOG_HAPPY, NULL);
     assets.petHappyAvatars[2] = LoadTextureWithFallback(PATH_PET_RABBIT_HAPPY, NULL);
+    assets.petSadAvatars[0] = LoadTextureWithFallback(PATH_PET_CAT_SAD, NULL);
+    assets.petSadAvatars[1] = LoadTextureWithFallback(PATH_PET_DOG_SAD, NULL);
+    assets.petSadAvatars[2] = LoadTextureWithFallback(PATH_PET_RABBIT_SAD, NULL);
+    assets.petSleepAvatars[0] = LoadTextureWithFallback(PATH_PET_CAT_SLEEP, NULL);
+    assets.petSleepAvatars[1] = LoadTextureWithFallback(PATH_PET_DOG_SLEEP, NULL);
+    assets.petSleepAvatars[2] = LoadTextureWithFallback(PATH_PET_RABBIT_SLEEP, NULL);
     assets.petIllustration = LoadTextureWithFallback(PATH_PET_ILLUST, "assets/pet_illustration.png");
     assets.bgLivingRoom    = LoadTextureWithFallback(PATH_BG_LIVINGROOM, "assets/bg_livingroom.png");
     assets.bgKitchen       = LoadTextureWithFallback(PATH_BG_KITCHEN, "assets/bg_kitchen.png");
@@ -287,12 +334,34 @@ int main(void) {
     int animFrame = 0;
     double lastAnimTime = GetTime();
     double happyExpressionStart = GetTime();
+    double pettingStart = -1.0;
+    double sadShakeStart = -1.0;
+    bool sadMoodActive = false;
+    bool bathActive = false;
+    bool fullBathActive = false;
+    double bathStart = 0.0;
+    double bathDuration = 0.0;
 
     // ------------------------------------------------------------------------
     // MAIN LOOP
     // ------------------------------------------------------------------------
     while (!WindowShouldClose()) {
         double now = GetTime();
+
+        if (bathActive && now - bathStart >= bathDuration) {
+            pet.cleanliness = ClampStat(pet.cleanliness + (fullBathActive ? 50 : 25), 0, 100);
+            if (fullBathActive) {
+                pet.happiness = ClampStat(pet.happiness + 15, 0, 100);
+                pet.health = ClampStat(pet.health + 10, 0, 100);
+                pet.energy = ClampStat(pet.energy - 10, 0, 100);
+                snprintf(messageLog, sizeof(messageLog), "%s %s", pet.name, TXT_MSG_CLEANED);
+            } else {
+                pet.happiness = ClampStat(pet.happiness + 5, 0, 100);
+                snprintf(messageLog, sizeof(messageLog), "%s %s", pet.name, TXT_MSG_SHOWERED);
+            }
+            messageTime = now;
+            bathActive = false;
+        }
 
         // Update animation frames based on configured FPS
         if ((now - lastAnimTime) >= (1.0 / (double)PET_ANIM_FPS)) {
@@ -315,6 +384,14 @@ int main(void) {
                 pet.health = ClampStat(pet.health - 1, 0, 100);
             }
         }
+
+        bool isSad = PetOverallStat(&pet) < 34;
+        if (isSad && !sadMoodActive) {
+            sadShakeStart = now;
+        } else if (!isSad) {
+            sadShakeStart = -1.0;
+        }
+        sadMoodActive = isSad;
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
@@ -351,10 +428,10 @@ int main(void) {
             int selSubW = MeasureText(TXT_SELECT_SUBTITLE, 16);
             DrawText(TXT_SELECT_SUBTITLE, (SCREEN_WIDTH - selSubW) / 2, 75, 16, DARKGRAY);
 
-            PetType types[4] = { PET_CAT, PET_DOG, PET_RABBIT, PET_NANDA };
+            PetType types[3] = { PET_CAT, PET_DOG, PET_RABBIT };
 
-            for (int i = 0; i < 4; i++) {
-                Rectangle card = { 50.0f + i * 180, 120, 160, 330 };
+            for (int i = 0; i < 3; i++) {
+                Rectangle card = { 140.0f + i * 180, 120, 160, 330 };
                 
                 if (pet.type == types[i]) {
                     DrawRectangleRec(card, (Color){ 220, 235, 255, 255 });
@@ -377,13 +454,6 @@ int main(void) {
                 Color btnBg = (pet.type == types[i]) ? SKYBLUE : LIGHTGRAY;
                 if (ButtonEx((Rectangle){ card.x + 25, card.y + 200, 110, 42 }, btnLabel, btnBg, SKYBLUE, 16)) {
                     pet.type = types[i];
-                    if (pet.type == PET_NANDA) {
-                        snprintf(pet.name, sizeof(pet.name), "%s", TXT_PET_NANDA);
-                        snprintf(messageLog, sizeof(messageLog), "%s", TXT_MSG_NANDA);
-                        messageTime = now;
-                        lastDecayTime = now;
-                        currentScreen = SCREEN_MAIN_ROOM;
-                    }
                 }
             }
 
@@ -457,14 +527,26 @@ int main(void) {
 
             // Pet placed naturally on the floor near drawers / aquarium (not floating)
             int pIdx = PetIndex(pet.type);
-            Texture2D avTex = (pIdx >= 0) ? assets.petAvatars[pIdx] : (Texture2D){ 0 };
+            Rectangle petRec = { 360, 215, 115, 115 };
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) &&
+                CheckCollisionPointRec(GetMousePosition(), petRec)) {
+                pettingStart = now;
+            }
+            if (pettingStart >= 0.0 && now - pettingStart < PETTING_DURATION) {
+                petRec.x += sinf((float)(now - pettingStart) * 42.0f) * 3.0f;
+            }
+            if (sadShakeStart >= 0.0 && now - sadShakeStart < PET_SAD_SHAKE_DURATION) {
+                petRec.x += sinf((float)(now - sadShakeStart) * 18.0f) * 2.0f;
+            }
+            Texture2D avTex = PetMoodTexture(&pet, &assets, pIdx);
             int overallStat = PetOverallStat(&pet);
             double happyCycleTime = fmod(now - happyExpressionStart, PET_HAPPY_INTERVAL);
             if (overallStat >= 67 && happyCycleTime < PET_HAPPY_DURATION &&
                 pIdx >= 0 && assets.petHappyAvatars[pIdx].id > 0) {
                 avTex = assets.petHappyAvatars[pIdx];
             }
-            DrawPetAvatarAnimated((Rectangle){ 360, 215, 115, 115 }, pet.type, avTex, animFrame);
+            DrawPetAvatarAnimated(petRec, pet.type, avTex, animFrame);
+            DrawPetConditionEffects(petRec, &pet, now);
             
             int nameW = MeasureText(pet.name, 22);
             DrawText(pet.name, 360 + (115 - nameW) / 2, 185, 22, DARKBLUE);
@@ -508,8 +590,10 @@ int main(void) {
 
             // Pet beside food & water bowls
             int pIdx = PetIndex(pet.type);
-            Texture2D avTex = (pIdx >= 0) ? assets.petAvatars[pIdx] : (Texture2D){ 0 };
-            DrawPetAvatarAnimated((Rectangle){ 190, 190, 130, 130 }, pet.type, avTex, animFrame);
+            Rectangle petRec = { 190, 190, 130, 130 };
+            Texture2D avTex = PetMoodTexture(&pet, &assets, pIdx);
+            DrawPetAvatarAnimated(petRec, pet.type, avTex, animFrame);
+            DrawPetConditionEffects(petRec, &pet, now);
 
             // Left side: Stat bars & Back button (x = 40)
             int statX = 40;
@@ -552,8 +636,10 @@ int main(void) {
             DrawRoomTitle(TXT_BACKYARD_TITLE, 40, 35);
 
             int pIdx = PetIndex(pet.type);
-            Texture2D avTex = (pIdx >= 0) ? assets.petAvatars[pIdx] : (Texture2D){ 0 };
-            DrawPetAvatarAnimated((Rectangle){ 315, 180, 130, 130 }, pet.type, avTex, animFrame);
+            Rectangle petRec = { 315, 180, 130, 130 };
+            Texture2D avTex = PetMoodTexture(&pet, &assets, pIdx);
+            DrawPetAvatarAnimated(petRec, pet.type, avTex, animFrame);
+            DrawPetConditionEffects(petRec, &pet, now);
 
             // Left side: Stat bars & Back button
             int statX = 40;
@@ -600,8 +686,10 @@ int main(void) {
             DrawRoomTitle(TXT_BEDROOM_TITLE, 40, 35);
 
             int pIdx = PetIndex(pet.type);
-            Texture2D avTex = (pIdx >= 0) ? assets.petAvatars[pIdx] : (Texture2D){ 0 };
-            DrawPetAvatarAnimated((Rectangle){ 340, 155, 120, 120 }, pet.type, avTex, animFrame);
+            Rectangle petRec = { 340, 155, 120, 120 };
+            Texture2D avTex = PetSleepTexture(&assets, pIdx);
+            DrawPetAvatarAnimated(petRec, pet.type, avTex, animFrame);
+            DrawPetConditionEffects(petRec, &pet, now);
             DrawText(TXT_SLEEPING_ZZZ, 450, 125, 26, YELLOW);
 
             // Left side: Stat bars & Back button
@@ -642,8 +730,13 @@ int main(void) {
             DrawRoomTitle(TXT_BATHROOM_TITLE, 40, 35);
 
             int pIdx = PetIndex(pet.type);
-            Texture2D avTex = (pIdx >= 0) ? assets.petAvatars[pIdx] : (Texture2D){ 0 };
-            DrawPetAvatarAnimated((Rectangle){ 280, 165, 120, 120 }, pet.type, avTex, animFrame);
+            Rectangle petRec = { 280, 165, 120, 120 };
+            Texture2D avTex = PetMoodTexture(&pet, &assets, pIdx);
+            DrawPetAvatarAnimated(petRec, pet.type, avTex, animFrame);
+            DrawPetConditionEffects(petRec, &pet, now);
+            if (bathActive) {
+                DrawBathFoam(petRec, now - bathStart);
+            }
 
             // Left side: Stat bars & Back button
             int statX = 40;
@@ -656,25 +749,30 @@ int main(void) {
 
             // Right side: Action buttons at x = 450
             int btnX = 450;
-            if (ButtonEx((Rectangle){ btnX, 390, 300, 42 }, TXT_BATH_SHOWER, LIGHTGRAY, SKYBLUE, 16)) {
-                pet.cleanliness = ClampStat(pet.cleanliness + 25, 0, 100);
-                pet.happiness = ClampStat(pet.happiness + 5, 0, 100);
-                snprintf(messageLog, sizeof(messageLog), "%s %s", pet.name, TXT_MSG_SHOWERED);
-                messageTime = now;
+            if (ButtonEx((Rectangle){ btnX, 390, 300, 42 }, TXT_BATH_SHOWER, LIGHTGRAY, SKYBLUE, 16) && !bathActive) {
+                bathActive = true;
+                fullBathActive = false;
+                bathStart = now;
+                bathDuration = BATH_SHOWER_DURATION;
             }
-            if (ButtonEx((Rectangle){ btnX, 438, 300, 42 }, TXT_BATH_BRUSH, LIGHTGRAY, SKYBLUE, 16)) {
+            if (ButtonEx((Rectangle){ btnX, 438, 300, 42 }, TXT_BATH_BRUSH, LIGHTGRAY, SKYBLUE, 16) && !bathActive) {
                 pet.cleanliness = ClampStat(pet.cleanliness + 15, 0, 100);
                 pet.happiness = ClampStat(pet.happiness + 10, 0, 100);
                 snprintf(messageLog, sizeof(messageLog), "%s %s", pet.name, TXT_MSG_BRUSHED);
                 messageTime = now;
             }
-            if (ButtonEx((Rectangle){ btnX, 486, 300, 42 }, TXT_BATH_FULL, LIGHTGRAY, SKYBLUE, 16)) {
-                pet.cleanliness = ClampStat(pet.cleanliness + 50, 0, 100);
-                pet.happiness = ClampStat(pet.happiness + 15, 0, 100);
-                pet.health = ClampStat(pet.health + 10, 0, 100);
-                pet.energy = ClampStat(pet.energy - 10, 0, 100);
-                snprintf(messageLog, sizeof(messageLog), "%s %s", pet.name, TXT_MSG_CLEANED);
-                messageTime = now;
+            if (ButtonEx((Rectangle){ btnX, 486, 300, 42 }, TXT_BATH_FULL, LIGHTGRAY, SKYBLUE, 16) && !bathActive) {
+                bathActive = true;
+                fullBathActive = true;
+                bathStart = now;
+                bathDuration = BATH_FULL_DURATION;
+            }
+            if (bathActive) {
+                float progress = (float)((now - bathStart) / bathDuration);
+                if (progress > 1.0f) progress = 1.0f;
+                DrawText(TXT_BATH_IN_PROGRESS, btnX, 535, 16, DARKBLUE);
+                DrawRectangleRec((Rectangle){ (float)btnX, 558, 300, 12 }, LIGHTGRAY);
+                DrawRectangleRec((Rectangle){ (float)btnX, 558, 300.0f * progress, 12 }, SKYBLUE);
             }
 
             DrawMessagePopup(messageLog, now, messageTime);
@@ -688,9 +786,11 @@ int main(void) {
     // ------------------------------------------------------------------------
     if (assets.hasCustomFont)           UnloadFont(assets.font);
     if (assets.logo.id > 0)             UnloadTexture(assets.logo);
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 3; i++) {
         if (assets.petAvatars[i].id > 0) UnloadTexture(assets.petAvatars[i]);
         if (assets.petHappyAvatars[i].id > 0) UnloadTexture(assets.petHappyAvatars[i]);
+        if (assets.petSadAvatars[i].id > 0) UnloadTexture(assets.petSadAvatars[i]);
+        if (assets.petSleepAvatars[i].id > 0) UnloadTexture(assets.petSleepAvatars[i]);
     }
     if (assets.petIllustration.id > 0) UnloadTexture(assets.petIllustration);
     if (assets.bgLivingRoom.id > 0)    UnloadTexture(assets.bgLivingRoom);
