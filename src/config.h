@@ -37,10 +37,15 @@
 #define PATH_PET_CAT            "assets/images/pets/cat.png"
 #define PATH_PET_DOG            "assets/images/pets/dog.png"
 #define PATH_PET_RABBIT         "assets/images/pets/rabbit.png"
-#define PATH_PET_NANDA          "assets/images/pets/nanda.png"
 #define PATH_PET_CAT_HAPPY      "assets/images/pets/cat happy.png"
 #define PATH_PET_DOG_HAPPY      "assets/images/pets/dog happy.png"
 #define PATH_PET_RABBIT_HAPPY   "assets/images/pets/rabbit happy.png"
+#define PATH_PET_CAT_SAD        "assets/images/pets/cat sad.png"
+#define PATH_PET_DOG_SAD        "assets/images/pets/dog sad.png"
+#define PATH_PET_RABBIT_SAD     "assets/images/pets/rabbit sad.png"
+#define PATH_PET_CAT_SLEEP      "assets/images/pets/cat sleep.png"
+#define PATH_PET_DOG_SLEEP      "assets/images/pets/dog sleep.png"
+#define PATH_PET_RABBIT_SLEEP   "assets/images/pets/rabbit sleep.png"
 #define PATH_PET_ILLUST         "assets/images/pets/pet_illustration.png"
 
 // Room Backgrounds
@@ -64,6 +69,11 @@
 #define STAT_DECAY_INTERVAL     4.0     // [EDITABLE]: Seconds between each stat decay tick
 #define PET_HAPPY_INTERVAL     10.0     // Seconds between happy expressions
 #define PET_HAPPY_DURATION      2.0     // Seconds the happy expression is shown
+#define PETTING_DURATION        0.6     // Seconds the pet reacts to being petted
+#define PET_SAD_SHAKE_DURATION  5.0     // Seconds the pet gently shakes after becoming sad
+#define BATH_SHOWER_DURATION    5.0     // Seconds for a regular shower
+#define BATH_FULL_DURATION     15.0     // Seconds for a full treatment
+#define PET_DIRTY_THRESHOLD    50       // Show dirt effects below this cleanliness
 #define MAX_NAME_LENGTH         12      // [EDITABLE]: Maximum characters in pet name
 
 #endif
