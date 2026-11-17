@@ -7,8 +7,7 @@ typedef enum {
     PET_NONE, 
     PET_CAT, 
     PET_DOG, 
-    PET_RABBIT, 
-    PET_NANDA 
+    PET_RABBIT
 } PetType;
 
 typedef struct {
