@@ -29,7 +29,6 @@
 #define TXT_PET_CAT             "Kucing"                            // [EDITABLE]: Pet 1 Name
 #define TXT_PET_DOG             "Anjing"                            // [EDITABLE]: Pet 2 Name
 #define TXT_PET_RABBIT          "Kelinci"                           // [EDITABLE]: Pet 3 Name
-#define TXT_PET_NANDA           "NANDA"                             // [EDITABLE]: Pet 4 Name
 #define TXT_BTN_SELECT          "PILIH"                             // [EDITABLE]: Choose button
 #define TXT_BTN_SELECTED        "TERPILIH"                          // [EDITABLE]: Chosen button state
 #define TXT_BTN_CONTINUE        "LANJUT"                            // [EDITABLE]: Continue button
@@ -92,10 +91,10 @@
 // ----------------------------------------------------------------------------
 #define TXT_BTN_BACK            "< KEMBALI"                         // [EDITABLE]: Back button label
 #define TXT_MSG_WELCOME         "Selamat datang di Petopia!"        // [EDITABLE]: Initial message
-#define TXT_MSG_NANDA           "jangan bully org ya temen-temenn :)" // [EDITABLE]: Nanda's welcome message
 #define TXT_MSG_CLEANED         "dimandikan sampai bersih!"         // [EDITABLE]: Bath feedback
 #define TXT_MSG_SHOWERED        "disiram air hangat, segar!"        // [EDITABLE]: Shower feedback
 #define TXT_MSG_BRUSHED         "disikat bulunya, rapi!"            // [EDITABLE]: Brush feedback
+#define TXT_BATH_IN_PROGRESS    "Pet sedang dimandikan..."          // [EDITABLE]: Bath progress
 
 // Bathroom Screen
 #define TXT_BATHROOM_TITLE      "Kamar Mandi"                      // [EDITABLE]: Bathroom title
